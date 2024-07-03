@@ -20,7 +20,28 @@ Facilitación de Informes y Análisis: Proporcionar una base de datos estructura
 
 **•	CONJUNTO DE DATOS:** Basicamente esta base de datos, se compone de seis tablas que son: Estudiantes, staff, asignaturas, areas, profesiones y encargados. Con estos datos podemos hacer una nalisis detallado del comportamiento estructural de la escuela, para asi poder tomar las mejores decisiones para la misma.
 
+
 **•	DESARROLLO-EJECUCION:**
+
+![Der](https://github.com/pocolus/Portfolio-SQL02/blob/main/Der.png)
+
+
+**CONSULTAS BASE DE DATOS ESCUELA**
+**PRIMER MODULO**
+
+1. Indicar cuántos cursos y carreras tiene el área de Data. Renombrar la nueva columna como
+cant_asignaturas.
+```sql
+select Area.Nombre, 
+COUNT(AsignaturasID) as Cantidad_Asignaturas
+from Asignaturas
+inner join Area
+on Asignaturas.Area = Area.AreaID
+where Area.Nombre = 'Data'
+group by Area.Nombre;
+```
+
+
 
 
 
