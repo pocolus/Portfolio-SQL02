@@ -27,6 +27,7 @@ Facilitación de Informes y Análisis: Proporcionar una base de datos estructura
 
 
 **CONSULTAS BASE DE DATOS ESCUELA**
+
 **PRIMER MODULO**
 
 1. Indicar cuántos cursos y carreras tiene el área de Data. Renombrar la nueva columna como
@@ -39,6 +40,32 @@ inner join Area
 on Asignaturas.Area = Area.AreaID
 where Area.Nombre = 'Data'
 group by Area.Nombre;
+```
+2. Se requiere saber cual es el nombre, el documento de identidad y el teléfono de los estudiantes que son
+profesionales en agronomía y que nacieron entre el año 1970 y el año 2000.
+OPCION 1
+```sql
+select Nombre, Documento, Telefono
+from Estudiantes
+inner join Profesiones
+on Estudiantes.Profesion = Profesiones.ProfesionesID
+where Profesiones.Profesiones = 'Agronomo Agronoma' and YEAR([Fecha de Nacimiento]) between 1970 and 2000;
+```
+OPCION 2
+```sql
+select Nombre, Documento, Telefono
+from Estudiantes
+inner join Profesiones
+on Estudiantes.Profesion = Profesiones.ProfesionesID
+where Profesiones.Profesiones = 'Agronomo Agronoma' and [Fecha de Nacimiento] between '1970-01-01' and '2000-12-31';
+```
+OPCION 3
+```sql
+SELECT Nombre, Documento, telefono, [Fecha de Nacimiento] 
+FROM Estudiantes
+WHERE (Profesion) = 6 AND
+YEAR ([Fecha de Nacimiento])>=1970 AND 
+YEAR ([Fecha de Nacimiento])<=2000;
 ```
 
 
