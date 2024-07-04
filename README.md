@@ -26,7 +26,7 @@ Facilitación de Informes y Análisis: Proporcionar una base de datos estructura
 ![Der](https://github.com/pocolus/Portfolio-SQL02/blob/main/Der.png)
 
 
-# CONSULTAS BASE DE DATOS ESCUELA
+# Consultas Base De Datos Escuela
 
 **PRIMER MODULO**
 
@@ -95,6 +95,94 @@ order by Promedio desc;
 ```
 6. Se requiere calcular la edad de los estudiantes en una nueva columna. Renombrar a la nueva columna Edad.
 Filtrar solo los que son mayores de 18 años. Ordenar de Menor a Mayor.
+
+OPCION 1
+```sql
+select Nombre, Apellido,
+DATEDIFF(YEAR,[Fecha de Nacimiento], GETDATE()) as Edad
+from Estudiantes
+where DATEDIFF(YEAR,[Fecha de Nacimiento], GETDATE())  > 18
+order by Edad
+```
+OPCION 2
+```sql
+SELECT Nombre, Apellido, (DATEDIFF (DAY, [Fecha de Nacimiento], GETDATE())) / 365 AS EDAD
+FROM Estudiantes
+WHERE (DATEDIFF (DAY, [Fecha de Nacimiento], GETDATE())) / 365 > 18
+ORDER BY EDAD ASC;
+```
+7. Se requiere saber el Nombre,el correo, la camada y la fecha de ingreso de personas del staff que contienen
+correo .edu y su DocenteID se mayor o igual que 100.
+
+OPCION 1
+```sql
+select Nombre, Correo, Camada, [Fecha Ingreso]
+from Staff
+where Correo like '%.edu' and DocentesID >= 100;
+```
+OPCION 2
+```sql
+SELECT Nombre, Correo, Camada, [Fecha Ingreso]
+FROM Staff
+WHERE RIGHT (Correo, 4) = '.edu' AND DocentesID >= 100;
+```
+8. Se requiere conocer el documento, el domicilio, el código postal y el nombre de los
+primeros estudiantes que se registraron en la plataforma.
+```sql
+select Nombre, Documento, Domicilio, [Codigo Postal], [Fecha Ingreso]
+from Estudiantes
+order by [Fecha Ingreso]
+```
+9. Indicar el nombre, apellido y documento de identidad de los docentes y tutores que
+tienen asignaturas “UX”.
+```sql
+select staff.Nombre, staff.Apellido, staff.Documento, Asignaturas.Nombre as Asignatura, Encargado.Nombre, Encargado.Apellido, Encargado.Documento
+from Staff
+inner join Encargado
+on Staff.Encargado = Encargado.Encargado_ID
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+where Asignaturas.Nombre like '%UX%';
+```
+10. Se desea calcular el 25% de aumento para las asignaturas del área de marketing de la
+jornada mañana se deben traer todos los campos, mas el de los cálculos
+correspondientes el porcentaje y el Nuevo costo debe estar en decimal con 3 digitos.
+Renombrar el calculo del porcentaje con el nombre porcentaje y la suma del costo
+mas el porcentaje por NuevoCosto.
+```sql
+select Asignaturas.Nombre, Jornada, Area.Nombre as Area,  Costo,
+costo * 0.25 as Porcentaje,
+format((costo * 0.25) + Costo, '0.000') as Nuevo_Costo 
+from asignaturas
+inner join area
+on Asignaturas.Area = Area.AreaID 
+where Area.Nombre like'%Marketing%' and Asignaturas.Jornada = 'manana';
+```
+**SEGUNDO MODULO**
+
+1. Indicar por jornada la cantidad de docentes que dictan y sumar los costos. Esta información solo se desea
+visualizar para las asignaturas de desarrollo web. El resultado debe contener todos los valores registrados en la
+primera tabla, Renombrar la columna del cálculo de la cantidad de docentes como cant_docentes y la
+columna de la suma de los costos como suma_total.
+```sql
+select Jornada,
+COUNT(Staff.DocentesID) as Cantidad_Docentes,
+SUM(Asignaturas.Costo) as Suma_total
+from Asignaturas
+left join Staff
+on Asignaturas.AsignaturasID = Staff.Asignatura
+where Asignaturas.Nombre = 'desarrollo web'
+group by Jornada;
+```
+
+
+
+
+
+
+
+
+
 
 
 
