@@ -26,7 +26,7 @@ Facilitación de Informes y Análisis: Proporcionar una base de datos estructura
 ![Der](https://github.com/pocolus/Portfolio-SQL02/blob/main/Der.png)
 
 
-**CONSULTAS BASE DE DATOS ESCUELA**
+# CONSULTAS BASE DE DATOS ESCUELA
 
 **PRIMER MODULO**
 
@@ -43,6 +43,7 @@ group by Area.Nombre;
 ```
 2. Se requiere saber cual es el nombre, el documento de identidad y el teléfono de los estudiantes que son
 profesionales en agronomía y que nacieron entre el año 1970 y el año 2000.
+
 OPCION 1
 ```sql
 select Nombre, Documento, Telefono
@@ -67,6 +68,34 @@ WHERE (Profesion) = 6 AND
 YEAR ([Fecha de Nacimiento])>=1970 AND 
 YEAR ([Fecha de Nacimiento])<=2000;
 ```
+3. Se requiere un listado de los docentes que ingresaron en el año 2021 y concatenar los campos nombre y
+apellido. El resultado debe utilizar un separador: guión (-). Ejemplo: Elba-Jimenez. Renombrar la nueva
+columna como Nombres_Apellidos. Los resultados de la nueva columna deben estar en mayúsculas.
+```sql
+select UPPER (CONCAT_WS('-', Nombre, Apellido)) as Nombres_Apellido, [Fecha Ingreso]
+from Staff
+where YEAR([Fecha Ingreso]) = 2021;
+```
+4. Indicar la cantidad de encargados de docentes y de tutores. Renombrar la columna como CantEncargados.
+Quitar la palabra ”Encargado ”en cada uno de los registros. Renombrar la columna como NuevoTipo.
+```sql
+select COUNT(Encargado_ID) as Cantidad_Encargados,
+ REPLACE(Tipo, 'Encargado', '') as Nuevo_tipo
+from Encargado
+group by Tipo;
+```
+5. Indicar cuál es el precio promedio de las carreras y los cursos por jornada. Renombrar la nueva columna
+como Promedio. Ordenar los promedios de Mayor a menor.
+```sql
+select Jornada, tipo,
+AVG (Costo) as Promedio
+from Asignaturas
+group by Jornada, tipo
+order by Promedio desc;
+```
+6. Se requiere calcular la edad de los estudiantes en una nueva columna. Renombrar a la nueva columna Edad.
+Filtrar solo los que son mayores de 18 años. Ordenar de Menor a Mayor.
+
 
 
 
