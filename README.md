@@ -296,6 +296,230 @@ from Estudiantes
 group by [Fecha Ingreso]
 order by Cantidas_Estudiantes desc;
 ```
+3. Identificar el top 10 de los encargados que tiene más docentes a cargo, filtrar solo los que tienen a cargo docentes.
+- Ordenar de mayor a menor para poder tener el listado correctamente.
+```sql
+select top 10 Tipo, encargado.Nombre, encargado.Apellido,
+count(staff.DocentesID) as Numero_Docentes
+from Encargado
+inner join Staff
+on Encargado.Encargado_ID = Staff.Encargado
+where Tipo like '%docentes%'
+group by Tipo, encargado.Nombre, encargado.Apellido
+order by Numero_Docentes desc;
+```
+4. Identificar la profesión y la cantidad de estudiantes que ejercen, mostrar el listado solo de las profesiones que
+tienen más de 5 estudiantes.
+- Ordenar de mayor a menor por la profesión que tenga más estudiantes.
+```sql
+select Profesiones,
+COUNT(Estudiantes.EstudiantesID) as Cantidad_estudiantes
+from Profesiones
+inner join Estudiantes
+on Profesiones.ProfesionesID = Estudiantes.Profesion
+group by Profesiones
+having COUNT(Estudiantes.EstudiantesID) > 5
+order by Cantidad_estudiantes desc;
+```
+5. Identificar: nombre del área, si la asignatura es carrera o curso , a qué jornada pertenece, cantidad de
+estudiantes y monto total del costo de la asignatura.
+- Ordenar el informe de mayor a menor por monto de costos total, tener en cuenta los docentes que no tienen asignaturas ni
+estudiantes asignados, también sumarlos.
+```sql
+select area.Nombre as Nombre_Area, Tipo, Jornada, 
+COUNT(Estudiantes.EstudiantesID) as Cantidad_Estudiantes,
+SUM(Asignaturas.Costo) as Costo_Total
+from Asignaturas
+inner join Area
+on area.AreaID = Asignaturas.Area
+left join Staff
+on Asignaturas.AsignaturasID = Staff.Asignatura
+left join Estudiantes
+on Staff.DocentesID = Estudiantes.Docente
+group by area.Nombre, Tipo, Jornada
+order by Costo_Total desc;
+```
+**TERCER MODULO B**
+
+1. Identificar para cada área: el año y el mes (concatenados en formato YYYYMM), cantidad de estudiantes y monto total de las asignaturas.
+- Ordenar por mes del más actual al más antiguo y por cantidad de clientes de mayor a menor.
+```sql
+SELECT Area.Nombre, 
+concat_ws('-', year(Estudiantes.[Fecha Ingreso]), month(Estudiantes.[Fecha Ingreso])) as Fecha,
+COUNT(Estudiantes.EstudiantesID) as Cantidad_Estudiantes,
+format(SUM(Asignaturas.Costo),'0.00') as Monto_Total
+FROM Area
+inner join Asignaturas
+on Area.AreaID = Asignaturas.Area
+inner join Staff
+on Asignaturas.AsignaturasID = Staff.Asignatura
+inner join Estudiantes
+on Staff.DocentesID = Estudiantes.Docente
+group by Area.Nombre, 
+concat_ws('-', year(Estudiantes.[Fecha Ingreso]), month(Estudiantes.[Fecha Ingreso]))
+order by Fecha desc, Cantidad_Estudiantes desc;
+```
+2.Análisis encargado tutores jornada noche: 
+ Identificar el nombre del encargado, el documento de identidad, el número de la camada (solo el número) y la fecha
+de ingreso del tutor. Ordenar por camada de forma mayor a menor.
+```sql
+select Encargado.Nombre, Encargado.Documento, encargado.tipo, asignaturas.jornada,
+RIGHT(Staff.Camada, 6) as Numero_Camada, Staff.[Fecha Ingreso]
+from Encargado
+inner join Staff
+on.Encargado.Encargado_ID = Staff.Encargado
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+where Encargado.Tipo like '%tutores%' and Asignaturas.Jornada ='Noche'
+order by Numero_Camada desc;
+```
+3. Identificar el tipo de asignatura, la jornada, la cantidad de áreas únicas y la
+cantidad total de asignaturas que no tienen asignadas docentes o tutores.
+- Ordenar por tipo de forma descendente.
+
+OPCION 1
+```sql
+select Asignaturas.Tipo, Asignaturas.Jornada,
+COUNT(DISTINCT Asignaturas.Area) as Cantidad_Areas,
+COUNT(Asignaturas.Nombre) AS Asignaturas_No_Asignada
+from Asignaturas
+LEFT join staff
+on Asignaturas.AsignaturasID = Staff.Asignatura
+where Staff.DocentesID is null
+group by Asignaturas.Tipo, Asignaturas.Jornada
+order by Asignaturas.Tipo desc;
+```
+OPCION 2
+```sql
+SELECT 
+    Asignaturas.Tipo, 
+    Asignaturas.Jornada, 
+    COUNT(DISTINCT Asignaturas.Area) AS Cantidad_Areas,
+    COUNT(Asignaturas.Nombre) AS Asignaturas_No_Asignada
+FROM 
+    Asignaturas
+LEFT JOIN 
+    Staff ON Asignaturas.AsignaturasID = Staff.Asignatura
+LEFT JOIN 
+    Encargado ON Asignaturas.AsignaturasID = Encargado.Encargado_ID
+WHERE 
+    Staff.DocentesID IS NULL 
+    AND Encargado.Encargado_ID IS NULL
+GROUP BY 
+    Asignaturas.Tipo, 
+    Asignaturas.Jornada
+ORDER BY 
+    Asignaturas.Tipo DESC;
+```
+4. Identificar el nombre de la asignatura, el costo de la asignatura y el promedio
+del costo de las asignaturas por área.
+- Una vez obtenido el dato, del promedio se debe visualizar solo las carreras que se encuentran por encima del promedio.
+```sql
+select 
+t1.Nombre,
+t1.Costo,
+t2.avgcosto
+from Asignaturas t1,
+    (select Nombre,avg(Costo) avgcosto
+        from  Asignaturas 
+        group by Nombre) t2       
+where t1.Nombre=t2.Nombre
+and t1.Costo>t2.avgcosto
+```
+5. Identificar el nombre, documento de identidad, el área, la asignatura y el aumento del salario del
+docente, este último calcularlo sacándole un porcentaje al costo de la asignatura, todas las
+áreas tienen un porcentaje distinto, Marketing-17%, Diseño-20%, Programación-23%, Producto-13%, Data-15%, Herramientas 8%
+
+OPCION 1
+```sql
+SELECT 
+    Staff.Nombre as Docente,
+    Staff.Documento,
+    Area.Nombre AS Area,
+    Asignaturas.Nombre AS Asignatura,
+    CASE 
+        WHEN Area.Nombre like '%Marketing%' THEN Asignaturas.Costo * 0.17
+        WHEN Area.Nombre like '%Diseno%' THEN Asignaturas.Costo * 0.20
+        WHEN Area.Nombre like '%Programacion%' THEN Asignaturas.Costo * 0.23
+        WHEN Area.Nombre like '%Producto%' THEN Asignaturas.Costo * 0.13
+        WHEN Area.Nombre like '%Data%' THEN Asignaturas.Costo * 0.15
+        WHEN Area.Nombre like '%Herramientas%' THEN Asignaturas.Costo * 0.08
+        ELSE 0
+    END AS AumentoSalario
+FROM 
+    Staff 
+    inner JOIN Asignaturas  
+	ON Staff.Asignatura = Asignaturas.AsignaturasID
+	inner join Area
+	on Asignaturas.Area = Area.AreaID
+```
+OPCION 2
+```sql
+select staff.Nombre as Docente, Documento, Asignaturas.Nombre as Asignatura, Area.Nombre as Area,
+Costo * 0.17 as Salario
+from Staff
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+inner join Area
+on.Asignaturas.Area = Area.AreaID
+where Area.Nombre like'%Marketing%' 
+union
+select staff.Nombre as Docente, Documento, Asignaturas.Nombre as Asignatura, Area.Nombre as Area,
+Costo * 0.20 as Salario
+from Staff
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+inner join Area
+on.Asignaturas.Area = Area.AreaID
+where Area.Nombre like'%Diseno%' 
+union
+select staff.Nombre as Docente, Documento, Asignaturas.Nombre as Asignatura, Area.Nombre as Area,
+Costo * 0.23 as Salario
+from Staff
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+inner join Area
+on.Asignaturas.Area = Area.AreaID
+where Area.Nombre like'%programacion%' 
+union
+select staff.Nombre as Docente, Documento, Asignaturas.Nombre as Asignatura, Area.Nombre as Area,
+Costo * 0.13 as Salario
+from Staff
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+inner join Area
+on.Asignaturas.Area = Area.AreaID
+where Area.Nombre like'%producto%' 
+union
+select staff.Nombre as Docente, Documento, Asignaturas.Nombre as Asignatura, Area.Nombre as Area,
+Costo * 0.15 as Salario
+from Staff
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+inner join Area
+on.Asignaturas.Area = Area.AreaID
+where Area.Nombre like'%data%' 
+union
+select staff.Nombre as Docente, Documento, Asignaturas.Nombre as Asignatura, Area.Nombre as Area,
+Costo * 0.08 as Salario
+from Staff
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+inner join Area
+on.Asignaturas.Area = Area.AreaID
+where Area.Nombre like'%herramientas%'
+```
+
+
+
+
+       
+
+
+
+
+
+
 
 
 
