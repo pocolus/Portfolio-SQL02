@@ -174,6 +174,137 @@ on Asignaturas.AsignaturasID = Staff.Asignatura
 where Asignaturas.Nombre = 'desarrollo web'
 group by Jornada;
 ```
+2. Se requiere saber el id del encargado, el nombre, el apellido y cuántos son los docentes que tiene asignados
+cada encargado. Luego filtrar los encargados que tienen como resultado 0 ya que son los encargados que NO
+tienen asignado un docente. Renombrar el campo de la operación como Cant_Docentes.
+```sql
+select Encargado_ID, encargado.Nombre, encargado.Apellido,
+COUNT(DocentesID) as Cantidad_Docentes
+from Encargado
+left join Staff
+on Encargado.Encargado_ID = Staff.Encargado
+group by Encargado_ID, encargado.Nombre, encargado.Apellido
+having (COUNT(DocentesID)) = 0
+```
+3. Se requiere saber todos los datos de asignaturas que no tienen un docente asignado. El modelo de la
+consulta debe partir desde la tabla docentes.
+
+OPCION 1
+```sql
+select *
+from Asignaturas
+left join Staff
+on Asignaturas.AsignaturasID = Staff.Asignatura
+where DocentesID is null
+```
+OPCION 2
+```sql
+select *
+from Asignaturas
+left join Staff
+on Asignaturas.AsignaturasID = Staff.Asignatura
+where Asignaturas.AsignaturasID not in (select Asignatura from Staff);
+```
+4. Se quiere conocer la siguiente información de los docentes. El nombre completo concatenar el nombre y el
+apellido. Renombrar NombresCompletos, el documento, hacer un cálculo para conocer los meses de ingreso.
+Renombrar meses_ingreso, el nombre del encargado. Renombrar NombreEncargado, el tefelono del
+encargado. Renombrar TelefonoEncargado, el nombre del curso o carrera, la jornada y el nombre del área.
+Solo se desean visualizar los que llevan más de 3 meses. Ordenar los meses de ingreso de mayor a menor.
+```sql
+select CONCAT(staff.Nombre, ' ', staff.Apellido) as Nombres_Completos, staff.Documento,
+DATEDIFF(MONTH, [Fecha Ingreso], GETDATE()) as Meses_Ingreso, Encargado.Nombre as Nombre_Encargado,
+Encargado.Telefono as Telefono_Encargado, Asignaturas.Nombre as Nombre_asignatura, Asignaturas.Jornada,
+Area.Nombre as Nombre_Area
+from Staff
+inner join Encargado
+on Staff.Encargado = Encargado.Encargado_ID
+inner join Asignaturas
+on Staff.Asignatura = Asignaturas.AsignaturasID
+inner join Area
+on Asignaturas.Area = Area.AreaID
+where DATEDIFF(MONTH, [Fecha Ingreso], GETDATE()) > 3
+order by Meses_Ingreso desc;
+```
+5. Se requiere un listado unificado con nombre, apellido, documento y una marca indicando a que base
+corresponde. Renombrar como Marca.
+```sql
+SELECT Nombre, Apellido,Documento, 'Encargado' AS Marca
+FROM Encargado 
+UNION 
+SELECT Nombre, Apellido,Documento, 'Staff' AS Marca
+FROM Staff
+UNION
+SELECT Nombre, Apellido,Documento, 'Estudiante' AS Marca
+FROM Estudiantes
+ORDER BY Marca DESC;
+```
+**TERCER MODULO A**
+
+1. Número de documento de identidad, nombre del docente y camada, para
+identificar la camada mayor y la menor según el número de la camada.
+- Número de documento de identidad, nombre de docente y camada para
+identificar la camada con fecha de ingreso, Mayo 2021.
+- Agregar un campo indicador que informe cuáles son los registros ”mayor o
+menor” y los que son “mayo 2021” y ordenar el listado de menor a mayor por
+camada.
+
+OPCION 1
+```sql
+select Documento, Nombre as Nombre_Docente, camada, [Fecha Ingreso],
+'Mayor' as Registro
+from Staff
+where Camada = (select max(camada) from Staff) 
+union
+select Documento, Nombre as Nombre_Docente, camada, [Fecha Ingreso],
+'Menor' as Registro
+from Staff
+where camada = (select MIN(camada) from Staff)
+union
+select Documento, Nombre as Nombre_Docente, camada, [Fecha Ingreso],
+'Mayo 2021' as Registro
+from Staff
+where [Fecha Ingreso] between '2021-05-01' and '2021-05-31'
+order by Camada;
+```
+OPCION 2
+```sql
+select Documento, Nombre as Nombre_Docente, camada, [Fecha Ingreso],
+'Mayor' as Registro
+from Staff
+where Camada = (select max(camada) from Staff) 
+union
+select Documento, Nombre as Nombre_Docente, camada, [Fecha Ingreso],
+'Menor' as Registro
+from Staff
+where camada = (select MIN(camada) from Staff)
+union
+select Documento, Nombre as Nombre_Docente, camada, [Fecha Ingreso],
+'Mayo 2021' as Registro
+from Staff
+where YEAR ([Fecha Ingreso]) = 2021 and MONTH ([Fecha Ingreso]) = 05
+order by Camada;
+```
+2. Por medio de la fecha de ingreso de los estudiantes identificar: cantidad total de estudiantes.
+- Mostrar los periodos de tiempo separados por año, mes y día, y presentar la información ordenada por
+la fecha que más ingresaron estudiantes.
+```sql
+select YEAR([Fecha Ingreso]) as Ano, 
+MONTH([fecha Ingreso]) as Mes,
+DAY([fecha Ingreso]) as Dia,
+COUNT(EstudiantesID) as Cantidas_Estudiantes
+from Estudiantes
+group by [Fecha Ingreso]
+order by Cantidas_Estudiantes desc;
+```
+
+
+
+
+
+
+
+
+
 
 
 
